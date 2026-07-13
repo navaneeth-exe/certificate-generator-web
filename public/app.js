@@ -69,6 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
         btnDownloadZip: $('btnDownloadZip'),
         fileList: $('fileList'),
         btnNewJob: $('btnNewJob'),
+        // Preview Modal
+        btnPreview: $('btnPreview'),
+        previewModal: $('previewModal'),
+        btnClosePreview: $('btnClosePreview'),
+        previewModalBody: $('previewModalBody'),
         // Libre status
         libreStatus: $('libreStatus'),
         // Toast
@@ -576,5 +581,57 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => toast.remove(), 300);
         }, 4000);
     }
+    // ═══════════════════════════════════════
+    //  LIVE PREVIEW
+    // ═══════════════════════════════════════
+
+    els.btnPreview.addEventListener('click', async () => {
+        if (!state.templateFileId || state.names.length === 0) {
+            showToast('Please upload a template and names first.', 'error');
+            return;
+        }
+
+        els.previewModal.classList.remove('hidden');
+        els.previewModalBody.innerHTML = '<div class="preview-loading">Generating preview...</div>';
+        
+        try {
+            const firstName = state.names[0];
+            const response = await fetch('/api/preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    templateFileId: state.templateFileId,
+                    name: firstName
+                })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Preview failed');
+            }
+
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+
+            if (blob.type === 'application/pdf') {
+                els.previewModalBody.innerHTML = `<iframe src="${blobUrl}#toolbar=0&navpanes=0&scrollbar=0" class="preview-iframe"></iframe>`;
+            } else {
+                els.previewModalBody.innerHTML = `
+                    <div style="text-align:center; padding: 40px;">
+                        <p style="margin-bottom: 16px;">LibreOffice is not installed, so we generated a PPTX.</p>
+                        <a href="${blobUrl}" download="preview.pptx" class="btn-primary" style="text-decoration:none;">Download Preview PPTX</a>
+                    </div>
+                `;
+            }
+
+        } catch (error) {
+            els.previewModalBody.innerHTML = `<div class="error-banner"><span class="error-icon">!</span><p>${error.message}</p></div>`;
+        }
+    });
+
+    els.btnClosePreview.addEventListener('click', () => {
+        els.previewModal.classList.add('hidden');
+        els.previewModalBody.innerHTML = '';
+    });
 
 });

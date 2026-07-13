@@ -20,11 +20,9 @@ async function parseNames(filePath, originalName) {
             rawNames = parseTxt(filePath);
             break;
         case '.csv':
-            rawNames = parseCsv(filePath);
-            break;
         case '.xlsx':
         case '.xls':
-            rawNames = parseXlsx(filePath);
+            rawNames = parseSpreadsheet(filePath);
             break;
         default:
             throw new Error(`Unsupported file format: ${ext}. Please upload a .docx, .xlsx, .txt, or .csv file.`);
@@ -34,7 +32,7 @@ async function parseNames(filePath, originalName) {
     const cleaned = rawNames
         .map(name => name.trim())
         .filter(name => name.length > 0)
-        .filter(name => !/^(name|names|s\.?\s*no\.?|sr\.?\s*no\.?|serial|#|participant)/i.test(name)); // Skip headers
+        .filter(name => !/^(name|names|s\.?\s*no\.?|sr\.?\s*no\.?|serial|#|participant)/i.test(name)); // Skip generic headers just in case
 
     // Deduplicate while preserving order
     const seen = new Set();
@@ -57,7 +55,6 @@ async function parseNames(filePath, originalName) {
 async function parseDocx(filePath) {
     const result = await mammoth.extractRawText({ path: filePath });
     const text = result.value;
-    // Split by newlines (mammoth uses \n\n between paragraphs, but also handle \n)
     return text.split(/\n+/);
 }
 
@@ -71,38 +68,11 @@ function parseTxt(filePath) {
 }
 
 /**
- * Extract names from a CSV file (.csv)
- * Assumes names are in the first column, handles quoted values
+ * Extract names from an Excel or CSV file (.xlsx / .xls / .csv)
+ * Intelligently scans the header row to find the "name" column.
+ * Defaults to the first column if no explicit header is found.
  */
-function parseCsv(filePath) {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const lines = content.split(/\r?\n/);
-    const names = [];
-
-    for (const line of lines) {
-        if (line.trim().length === 0) continue;
-
-        // Take the first column value
-        let value;
-        if (line.startsWith('"')) {
-            // Handle quoted CSV values
-            const endQuote = line.indexOf('"', 1);
-            value = endQuote > 0 ? line.substring(1, endQuote) : line;
-        } else {
-            value = line.split(',')[0];
-        }
-
-        names.push(value.trim());
-    }
-
-    return names;
-}
-
-/**
- * Extract names from an Excel file (.xlsx / .xls)
- * Reads the first sheet, takes values from the first column
- */
-function parseXlsx(filePath) {
+function parseSpreadsheet(filePath) {
     const workbook = XLSX.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -111,9 +81,30 @@ function parseXlsx(filePath) {
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
     const names = [];
 
-    for (const row of rows) {
-        if (row.length > 0 && row[0] != null) {
-            const value = String(row[0]).trim();
+    if (rows.length === 0) return names;
+
+    let nameColIndex = 0;
+    const headerRow = rows[0] || [];
+    const nameRegex = /^(name|full\s*name|first\s*name|participant|candidate|student|employee)/i;
+    
+    // Look for a column header that matches a typical "name" column
+    for (let i = 0; i < headerRow.length; i++) {
+        if (nameRegex.test(String(headerRow[i]).trim())) {
+            nameColIndex = i;
+            break;
+        }
+    }
+
+    // If the first row was determined to be a header, skip it
+    let startRow = 0;
+    if (headerRow.length > nameColIndex && nameRegex.test(String(headerRow[nameColIndex]).trim())) {
+        startRow = 1;
+    }
+
+    for (let i = startRow; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.length > nameColIndex && row[nameColIndex] != null) {
+            const value = String(row[nameColIndex]).trim();
             if (value.length > 0) {
                 names.push(value);
             }

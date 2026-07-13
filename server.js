@@ -209,6 +209,44 @@ app.post('/api/generate', async (req, res) => {
     }
 });
 
+// ─── API: Generate Live Preview ───
+app.post('/api/preview', async (req, res) => {
+    const { templateFileId, name } = req.body;
+
+    if (!templateFileId || !name) {
+        return res.status(400).json({ error: 'Template file ID and name are required for preview.' });
+    }
+
+    const templatePath = path.join(uploadsDir, templateFileId);
+    if (!fs.existsSync(templatePath)) {
+        return res.status(404).json({ error: 'Template file not found. Please re-upload.' });
+    }
+
+    try {
+        const templateBuffer = fs.readFileSync(templatePath);
+        
+        // Generate certificate PPTX
+        const certBuffer = generateCertificate(templateBuffer, name);
+
+        // Convert to PDF if possible
+        const result = await convertToPdf(certBuffer);
+        
+        if (result.format === 'pdf') {
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'inline; filename="preview.pdf"');
+            res.send(result.buffer);
+        } else {
+            // Fallback to PPTX if LibreOffice is not installed
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+            res.setHeader('Content-Disposition', 'attachment; filename="preview.pptx"');
+            res.send(result.buffer);
+        }
+    } catch (error) {
+        console.error('Preview generation error:', error);
+        res.status(500).json({ error: 'Failed to generate preview: ' + error.message });
+    }
+});
+
 // ─── API: Download Individual Certificate ───
 app.get('/api/download/:jobId/:fileName', (req, res) => {
     const { jobId, fileName } = req.params;

@@ -224,7 +224,13 @@
 
                         <div class="panel-actions split">
                             <button class="btn-secondary" id="btnBackToStep2">Back</button>
-                            <button class="btn-primary generate" id="btnGenerate">Start Generation</button>
+                            <div style="display: flex; gap: 12px;">
+                                <button class="btn-secondary" id="btnPreview">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    Preview
+                                </button>
+                                <button class="btn-primary generate" id="btnGenerate">Start Generation</button>
+                            </div>
                         </div>
                     </div>
 
@@ -256,6 +262,19 @@
     </main>
 
     <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="preview-modal hidden">
+        <div class="preview-modal-content">
+            <div class="preview-modal-header">
+                <h3>Live Preview</h3>
+                <button class="icon-btn" id="btnClosePreview">✕</button>
+            </div>
+            <div class="preview-modal-body" id="previewModalBody">
+                <div class="preview-loading">Generating preview...</div>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
