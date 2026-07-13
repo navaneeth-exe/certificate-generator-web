@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+
+# Uploads and outputs
+uploads/
+output/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

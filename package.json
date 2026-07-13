@@ -1,0 +1,21 @@
+{
+  "name": "certificate-generator",
+  "version": "1.0.0",
+  "description": "Bulk certificate generator from PPTX templates",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "docxtemplater": "^3.50.0",
+    "express": "^4.21.0",
+    "libreoffice-convert": "^1.6.0",
+    "mammoth": "^1.8.0",
+    "multer": "^1.4.5-lts.1",
+    "pizzip": "^3.1.7",
+    "uuid": "^10.0.0",
+    "xlsx": "^0.18.5"
+  }
+}

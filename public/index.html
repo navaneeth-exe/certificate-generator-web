@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bulk certificate generator — upload a PPTX template, add participant names, and generate hundreds of personalized certificates in seconds.">
+    <title>CertForge — Certificate Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background animated gradient -->
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+
+    <!-- Header -->
+    <header id="app-header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="8" width="32" height="24" rx="3" stroke="url(#logo-grad)" stroke-width="2.5"/>
+                        <path d="M4 14h32" stroke="url(#logo-grad)" stroke-width="2" opacity="0.5"/>
+                        <circle cx="20" cy="24" r="4" stroke="url(#logo-grad)" stroke-width="2"/>
+                        <path d="M16 30l4-2 4 2" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="logo-grad" x1="0" y1="0" x2="40" y2="40">
+                                <stop stop-color="#818cf8"/>
+                                <stop offset="1" stop-color="#6366f1"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div>
+                    <h1>CertForge</h1>
+                    <p class="tagline">Bulk Certificate Generator</p>
+                </div>
+            </div>
+            <div class="libre-status" id="libreStatus">
+                <span class="status-dot"></span>
+                <span class="status-text">Checking PDF support...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-main">
+        <!-- Step Indicator -->
+        <div class="step-indicator" id="stepIndicator">
+            <div class="step-item active" data-step="1">
+                <div class="step-number">1</div>
+                <span class="step-label">Upload Template</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="2">
+                <div class="step-number">2</div>
+                <span class="step-label">Add Names</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="3">
+                <div class="step-number">3</div>
+                <span class="step-label">Generate</span>
+            </div>
+        </div>
+
+        <!-- Step Panels -->
+        <div class="steps-container">
+
+            <!-- ═══ STEP 1: Upload Template ═══ -->
+            <section class="step-panel active" id="step1">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="12" y1="18" x2="12" y2="12"/>
+                                <polyline points="9,15 12,12 15,15"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2>Upload Certificate Template</h2>
+                            <p>Upload your PPTX template with a <code>{NAME}</code> placeholder</p>
+                        </div>
+                    </div>
+                    <div class="dropzone" id="templateDropzone">
+                        <input type="file" id="templateInput" accept=".pptx" hidden>
+                        <div class="dropzone-content">
+                            <div class="dropzone-icon">
+                                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <rect x="8" y="6" width="32" height="36" rx="4"/>
+                                    <path d="M16 18h16M16 24h16M16 30h8"/>
+                                    <path d="M24 38v-8m0 0l-3 3m3-3l3 3" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <p class="dropzone-text">Drag & drop your <strong>.pptx</strong> template here</p>
+                            <p class="dropzone-subtext">or click to browse</p>
+                            <span class="dropzone-badge">Max 50 MB</span>
+                        </div>
+                    </div>
+                    <!-- Template upload result -->
+                    <div class="upload-result hidden" id="templateResult">
+                        <div class="result-icon success">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="20,6 9,17 4,12"/>
+                            </svg>
+                        </div>
+                        <div class="result-info">
+                            <p class="result-filename" id="templateFileName"></p>
+                            <p class="result-meta" id="templateMeta"></p>
+                        </div>
+                        <button class="btn-icon" id="templateRemove" title="Remove template">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Error message -->
+                    <div class="upload-error hidden" id="templateError">
+                        <div class="result-icon error">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                        </div>
+                        <p class="error-text" id="templateErrorText"></p>
+                    </div>
+
+                    <div class="help-box">
+                        <h3>📋 How to prepare your template</h3>
+                        <ol>
+                            <li>Design your certificate in <strong>Canva</strong> (or PowerPoint)</li>
+                            <li>Export/download as <strong>PowerPoint (.pptx)</strong></li>
+                            <li>Open in PowerPoint or Google Slides</li>
+                            <li>Replace the sample name with <code>{NAME}</code> or <code>{{NAME}}</code></li>
+                            <li>Save and upload here</li>
+                        </ol>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn btn-primary" id="btnToStep2" disabled>
+                            Continue
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══ STEP 2: Upload Names ═══ -->
+            <section class="step-panel" id="step2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2>Add Participant Names</h2>
+                            <p>Upload a file or type names manually</p>
+                        </div>
+                    </div>
+
+                    <div class="names-input-tabs">
+                        <button class="tab-btn active" data-tab="file" id="tabFile">Upload File</button>
+                        <button class="tab-btn" data-tab="manual" id="tabManual">Type Manually</button>
+                    </div>
+
+                    <!-- File upload tab -->
+                    <div class="tab-content active" id="tabContentFile">
+                        <div class="dropzone dropzone-sm" id="namesDropzone">
+                            <input type="file" id="namesInput" accept=".docx,.xlsx,.xls,.txt,.csv" hidden>
+                            <div class="dropzone-content">
+                                <div class="dropzone-icon small">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                        <polyline points="14,2 14,8 20,8"/>
+                                    </svg>
+                                </div>
+                                <p class="dropzone-text">Drop <strong>.docx</strong>, <strong>.xlsx</strong>, <strong>.txt</strong>, or <strong>.csv</strong> file</p>
+                                <p class="dropzone-subtext">One name per line</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual entry tab -->
+                    <div class="tab-content" id="tabContentManual">
+                        <div class="manual-input-group">
+                            <textarea id="manualNames" placeholder="Enter names, one per line...&#10;&#10;e.g.&#10;Alice Johnson&#10;Bob Smith&#10;Charlie Brown" rows="6"></textarea>
+                            <button class="btn btn-secondary" id="btnAddManual">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Add Names
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Names list -->
+                    <div class="names-list-container hidden" id="namesListContainer">
+                        <div class="names-list-header">
+                            <h3>
+                                <span id="namesCount">0</span> Participants
+                            </h3>
+                            <button class="btn-text" id="btnClearNames">Clear All</button>
+                        </div>
+                        <ul class="names-list" id="namesList"></ul>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn btn-ghost" id="btnBackToStep1">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                            Back
+                        </button>
+                        <button class="btn btn-primary" id="btnToStep3" disabled>
+                            Generate Certificates
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══ STEP 3: Generate & Download ═══ -->
+            <section class="step-panel" id="step3">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                <polyline points="7,10 12,15 17,10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2>Generate & Download</h2>
+                            <p id="generateSubtitle">Ready to generate certificates</p>
+                        </div>
+                    </div>
+
+                    <!-- Generation progress -->
+                    <div id="generateSection">
+                        <div class="generate-summary" id="generateSummary">
+                            <div class="summary-item">
+                                <span class="summary-label">Template</span>
+                                <span class="summary-value" id="summaryTemplate">—</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Participants</span>
+                                <span class="summary-value" id="summaryCount">—</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Output Format</span>
+                                <span class="summary-value" id="summaryFormat">Checking...</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress bar -->
+                        <div class="progress-container hidden" id="progressContainer">
+                            <div class="progress-header">
+                                <span id="progressText">Generating...</span>
+                                <span id="progressPercent">0%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <p class="progress-current" id="progressCurrent"></p>
+                        </div>
+
+                        <!-- Warning banner -->
+                        <div class="warning-banner hidden" id="warningBanner">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            <p id="warningText"></p>
+                        </div>
+
+                        <!-- Start button -->
+                        <div class="card-actions" id="generateActions">
+                            <button class="btn btn-ghost" id="btnBackToStep2">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                                </svg>
+                                Back
+                            </button>
+                            <button class="btn btn-primary btn-lg" id="btnGenerate">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                                Start Generation
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Download section (shown after generation) -->
+                    <div class="download-section hidden" id="downloadSection">
+                        <div class="download-header">
+                            <div class="success-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                                    <polyline points="22,4 12,14.01 9,11.01"/>
+                                </svg>
+                                <span id="downloadCount">0</span> Certificates Generated!
+                            </div>
+                            <button class="btn btn-primary btn-lg" id="btnDownloadZip">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                    <polyline points="7,10 12,15 17,10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Download All (ZIP)
+                            </button>
+                        </div>
+                        <div class="file-list" id="fileList"></div>
+                        <div class="card-actions">
+                            <button class="btn btn-ghost" id="btnNewJob">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="1,4 1,10 7,10"/>
+                                    <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+                                </svg>
+                                Start Over
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
